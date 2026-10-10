@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- Wersja SDK Windows w TFM daje projekcje WinRT (Windows.Graphics.Capture). -->
+    <TargetFramework>net9.0-windows10.0.22621.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- System.Drawing (PrintWindow -> Bitmap, skalowanie miniatur). -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Pozwala skompilować projekt także poza Windows (CI); na Windows bez znaczenia. -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <AssemblyName>SpikeTest</AssemblyName>
+    <RootNamespace>SpikeTest</RootNamespace>
+  </PropertyGroup>
+
+</Project>

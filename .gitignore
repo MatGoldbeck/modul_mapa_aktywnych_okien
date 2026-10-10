@@ -1,0 +1,15 @@
+# Backend / test (.NET)
+**/bin/
+**/obj/
+
+# Wyniki testu technicznego (lokalne, z prywatnymi tytułami okien i miniaturami)
+spike/SpikeTest/wyniki/
+
+# Frontend (Electron/Node)
+**/node_modules/
+
+# OS / edytor
+.DS_Store
+Thumbs.db
+.vscode/
+*.user
