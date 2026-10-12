@@ -10,7 +10,7 @@ backend .NET 9 + frontend Electron + wspólne rozszerzenie Edge/Chrome.
 ## Stan
 
 - [x] Specyfikacja – [`docs/specyfikacja.md`](docs/specyfikacja.md)
-- [ ] Test techniczny – [`spike/`](spike/README.md) (do uruchomienia na Windows)
+- [x] Test techniczny – [`spike/`](spike/README.md), wyniki: [`docs/wyniki-testu-technicznego.md`](docs/wyniki-testu-technicznego.md)
 - [ ] Prototyp właściwy
 
 ## Struktura

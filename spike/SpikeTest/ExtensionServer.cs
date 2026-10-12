@@ -126,7 +126,7 @@ internal sealed class ExtensionServer
                 foreach (var key in _tabs.Keys.Where(k => k.Browser == browser)) _tabs.TryRemove(key, out _);
                 foreach (var t in msg!["tabs"]!.AsArray()) Upsert(browser, t!);
                 Log.Line($"[ROZSZERZENIE] {browser}: {msg["tabs"]!.AsArray().Count} kart, " +
-                         $"{UniqueUrls()} unikalnych adresów (= nodów)");
+                         $"razem we wszystkich przeglądarkach {UniqueUrls()} unikalnych adresów (= nodów)");
                 break;
 
             case "tabEvent":
@@ -192,10 +192,27 @@ internal sealed class ExtensionServer
         }
         Log.Line($"  Aktywuję kartę #{target.Id} ({target.Browser}): {target.Title}");
         await SendAsync(client, new { type = "activateTab", tabId = target.Id, windowId = target.WindowId });
-        await Task.Delay(500);
-        var fg = Native.GetForegroundWindow();
-        var w = WindowEnumerator.TryDescribe(fg);
-        Log.Line($"  Na pierwszym planie po 0,5 s: [{w?.ProcessName ?? "?"}] {WindowEnumerator.GetTitle(fg)}");
+        await Task.Delay(400);
+
+        // chrome.windows.update(focused) nie zawsze przebija blokadę pierwszego planu (test 2026-10-12:
+        // karta aktywna, ale z przodu zostało VS Code). Dlatego backend sam wysuwa okno przeglądarki,
+        // którego tytuł zaczyna się od tytułu aktywowanej karty.
+        var process = target.Browser == "edge" ? "msedge" : "chrome";
+        var fg = WindowEnumerator.TryDescribe(Native.GetForegroundWindow());
+        if (fg?.ProcessName.Equals(process, StringComparison.OrdinalIgnoreCase) == true && fg.Title.StartsWith(target.Title))
+        {
+            Log.Line($"  Na pierwszym planie: [{fg.ProcessName}] {fg.Title} (wystarczyło rozszerzenie)");
+            return;
+        }
+        var window = WindowEnumerator.List().FirstOrDefault(w =>
+            w.ProcessName.Equals(process, StringComparison.OrdinalIgnoreCase) && w.Title.StartsWith(target.Title));
+        if (window == null)
+        {
+            Log.Line($"  Nie znaleziono okna {process} z tytułem karty – na pierwszym planie: {fg?.Title ?? "?"}");
+            return;
+        }
+        Log.Line("  Rozszerzenie nie wysunęło okna – przełącza backend:");
+        WindowSwitcher.SwitchTo(window);
     }
 
     public async Task RequestTabsAsync()

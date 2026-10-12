@@ -107,11 +107,14 @@ oknami** — nie przechowuje ścieżek plików ani referencji do ponownego otwie
 
 ## 7. Miniatury
 
-- Bitmapy konkretnych okien, zapisywane jako WebP ok. 320 px szerokości.
+- Bitmapy konkretnych okien robione przez `PrintWindow` (wynik testu technicznego: szybsze
+  niż Windows.Graphics.Capture i bez żółtej ramki na Windows 10), zapisywane jako WebP
+  ok. 320 px szerokości.
 - Powstają automatycznie przy pojawieniu się nowego okna oraz na żądanie
   („Odśwież miniatury”).
 - Okno zminimalizowane nie daje świeżego obrazu — zostaje ostatnia zapisana miniatura.
-- Okna z innych pulpitów wirtualnych — do rozstrzygnięcia w teście technicznym;
+- Okna z innych pulpitów wirtualnych — nie sprawdzone w teście (jeden pulpit), do weryfikacji
+  w prototypie;
   w najgorszym razie zostaje ostatnia zapisana miniatura.
 - Miniatury zamkniętych okien są usuwane.
 
@@ -125,7 +128,10 @@ oknami** — nie przechowuje ścieżek plików ani referencji do ponownego otwie
 - **Kliknięcie noda** przełącza do jego okna:
   - okno zminimalizowane zostaje przywrócone,
   - okno z innego pulpitu wirtualnego → przełączenie pulpitu (weryfikacja w teście),
-  - nod karty → aktywacja karty przez rozszerzenie + okna przeglądarki.
+  - nod karty → aktywacja karty przez rozszerzenie; jeśli okno przeglądarki nie wyjdzie na
+    pierwszy plan, backend wysuwa je sam,
+  - kolejność metod przełączania: `SetForegroundWindow`, a przy blokadzie pierwszego planu
+    „trik z Alt” (wynik testu).
 
 ## 9. Zapis i konfiguracja
 
@@ -145,6 +151,8 @@ oknami** — nie przechowuje ścieżek plików ani referencji do ponownego otwie
 - integracja z DocMonitorem poza wspólnym rozszerzeniem.
 
 ## 11. Test techniczny (przed prototypem)
+
+Wykonany 2026-10-12 – wyniki: [`wyniki-testu-technicznego.md`](wyniki-testu-technicznego.md).
 
 Na Windowsie użytkownika:
 
