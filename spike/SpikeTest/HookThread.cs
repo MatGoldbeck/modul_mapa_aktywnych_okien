@@ -38,7 +38,8 @@ internal sealed class HookThread
 
     private void Run()
     {
-        foreach (var w in WindowEnumerator.List()) _known[w.Hwnd] = w;
+        lock (_gate)
+            foreach (var w in WindowEnumerator.List()) _known[w.Hwnd] = w;
 
         var mouseHook = Native.SetWindowsHookEx(Native.WH_MOUSE_LL, _mouseProc, Native.GetModuleHandle(null), 0);
         Log.Line(mouseHook == IntPtr.Zero
@@ -101,32 +102,54 @@ internal sealed class HookThread
 
     // --- Zdarzenia okien --------------------------------------------------
 
+    // Okno musi przetrwać tyle czasu, zanim stanie się nodem – odsiewa chwilowe okna
+    // (powiadomienia, okna pomocnicze WebView2/Chromium widoczne przez ułamek sekundy).
+    public const int StableMs = 800;
+    private readonly object _gate = new();
+    // Referencje do timerów trzymamy, bo niereferencjonowany System.Threading.Timer może zostać zebrany przez GC.
+    private readonly Dictionary<IntPtr, System.Threading.Timer> _pending = new();
+
     private void OnWinEvent(IntPtr hook, uint ev, IntPtr hwnd, int idObject, int idChild, uint thread, uint time)
     {
         if (hwnd == IntPtr.Zero || idObject != Native.OBJID_WINDOW || idChild != 0) return;
 
         var now = ev == Native.EVENT_OBJECT_DESTROY ? null : WindowEnumerator.TryDescribe(hwnd);
-        bool wasKnown = _known.TryGetValue(hwnd, out var before);
+        lock (_gate)
+        {
+            bool wasKnown = _known.TryGetValue(hwnd, out var before);
 
-        if (now != null && !wasKnown)
+            if (now != null && !wasKnown)
+            {
+                if (!_pending.ContainsKey(hwnd))
+                    _pending[hwnd] = new System.Threading.Timer(_ => ConfirmNew(hwnd), null, StableMs, Timeout.Infinite);
+            }
+            else if (now == null && wasKnown)
+            {
+                _known.Remove(hwnd);
+                if (LogWindowEvents) Log.Line($"[- OKNO] [{before!.ProcessName}] {before.Title}");
+            }
+            else if (now != null && wasKnown && now.Title != before!.Title)
+            {
+                _known[hwnd] = now;
+                // Przeglądarki zmieniają tytuł przy każdej zmianie karty – karty raportuje rozszerzenie.
+                if (LogWindowEvents && !WindowEnumerator.SupportedBrowsers.Contains(now.ProcessName))
+                    Log.Line($"[~ TYTUŁ] [{now.ProcessName}] „{before.Title}” → „{now.Title}”");
+            }
+        }
+    }
+
+    private void ConfirmNew(IntPtr hwnd)
+    {
+        var now = WindowEnumerator.TryDescribe(hwnd);
+        lock (_gate)
         {
+            if (_pending.Remove(hwnd, out var timer)) timer.Dispose();
+            if (now == null || _known.ContainsKey(hwnd)) return;
             _known[hwnd] = now;
-            if (LogWindowEvents)
-                Log.Line($"[+ OKNO] [{now.ProcessName}] {now.Title}  (krawędź: {now.Edge})");
-            if (WindowEnumerator.OtherBrowsers.Contains(now.ProcessName))
-                Program.WarnOtherBrowserOnce(now.ProcessName);
         }
-        else if (now == null && wasKnown)
-        {
-            _known.Remove(hwnd);
-            if (LogWindowEvents) Log.Line($"[- OKNO] [{before!.ProcessName}] {before.Title}");
-        }
-        else if (now != null && wasKnown && now.Title != before!.Title)
-        {
-            _known[hwnd] = now;
-            // Przeglądarki zmieniają tytuł przy każdej zmianie karty – karty raportuje rozszerzenie.
-            if (LogWindowEvents && !WindowEnumerator.SupportedBrowsers.Contains(now.ProcessName))
-                Log.Line($"[~ TYTUŁ] [{now.ProcessName}] „{before.Title}” → „{now.Title}”");
-        }
+        if (LogWindowEvents)
+            Log.Line($"[+ OKNO] [{now.ProcessName}] {now.Title}  (krawędź: {now.Edge}; {now.Diagnostics})");
+        if (WindowEnumerator.OtherBrowsers.Contains(now.ProcessName))
+            Program.WarnOtherBrowserOnce(now.ProcessName);
     }
 }

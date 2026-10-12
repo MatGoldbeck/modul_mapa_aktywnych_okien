@@ -13,8 +13,13 @@ internal sealed record WindowInfo(
     Guid? DesktopId,
     bool? OnCurrentDesktop,
     IntPtr Monitor,
-    Native.RECT Bounds)
+    Native.RECT Bounds,
+    long Style,
+    long ExStyle)
 {
+    /// <summary>Dane do diagnozy fałszywych okien (klasa, style, rozmiar).</summary>
+    public string Diagnostics => $"klasa={ClassName}, styl=0x{Style:X8}, exstyl=0x{ExStyle:X8}, {Bounds.Width}x{Bounds.Height}";
+
     /// <summary>Klucz noda wg specyfikacji: proces + tytuł okna.</summary>
     public string Key => $"{ProcessName.ToLowerInvariant()}|{Title}";
 
@@ -31,6 +36,15 @@ internal static class WindowEnumerator
         "Progman", "WorkerW", "Shell_TrayWnd", "Shell_SecondaryTrayWnd",
         "Windows.UI.Core.CoreWindow", // treść aplikacji UWP – widoczna przez ApplicationFrameWindow
     };
+
+    // Ukryte okna dostępności Chromium/Electron (pojawiały się na chwilę w msedge i Logseq).
+    private static readonly HashSet<string> IgnoredTitles = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Chrome Legacy Window",
+    };
+
+    /// <summary>Okna mniejsze niż to (w px) nie są nodami – to paski, dymki, uchwyty.</summary>
+    private const int MinSizePx = 80;
 
     public static readonly HashSet<string> SupportedBrowsers = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -81,7 +95,7 @@ internal static class WindowEnumerator
         if (owner != IntPtr.Zero && !appWindow) return null;
 
         var title = GetTitle(hwnd);
-        if (string.IsNullOrWhiteSpace(title)) return null;
+        if (string.IsNullOrWhiteSpace(title) || IgnoredTitles.Contains(title)) return null;
 
         var cls = GetClass(hwnd);
         if (IgnoredClasses.Contains(cls)) return null;
@@ -105,9 +119,13 @@ internal static class WindowEnumerator
 
         Native.DwmGetWindowAttribute(hwnd, Native.DWMWA_EXTENDED_FRAME_BOUNDS, out Native.RECT rect,
             System.Runtime.InteropServices.Marshal.SizeOf<Native.RECT>());
+        bool minimized = Native.IsIconic(hwnd);
+        if (!minimized && (rect.Width < MinSizePx || rect.Height < MinSizePx)) return null;
 
-        return new WindowInfo(hwnd, title, cls, GetProcessName(pid), pid, Native.IsIconic(hwnd),
-            cloaked, desktopId, onCurrent, Native.MonitorFromWindow(hwnd, Native.MONITOR_DEFAULTTONEAREST), rect);
+        var style = Native.GetWindowLongPtr(hwnd, Native.GWL_STYLE).ToInt64();
+        return new WindowInfo(hwnd, title, cls, GetProcessName(pid), pid, minimized,
+            cloaked, desktopId, onCurrent, Native.MonitorFromWindow(hwnd, Native.MONITOR_DEFAULTTONEAREST), rect,
+            style, ex);
     }
 
     public static string GetTitle(IntPtr hwnd)

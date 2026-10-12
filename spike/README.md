@@ -23,7 +23,9 @@ cd spike\SpikeTest
 dotnet run -c Release
 ```
 
-Program to interaktywna konsola. Wszystko, co wypisuje, trafia też do
+Program to interaktywna konsola – **okno Canvas jeszcze się nie pojawia** (powstanie
+w prototypie właściwym). Gest jest tylko wykrywany i zapisywany jako `[GEST #n]`;
+polecenia z tabeli niżej wpisuje się w tej konsoli i zatwierdza Enterem. Wszystko, co wypisuje, trafia też do
 `spike\SpikeTest\wyniki\raport.txt`; miniatury do `wyniki\miniatury\` i `wyniki\karty\`.
 
 ## Rozszerzenie przeglądarki
@@ -43,7 +45,7 @@ z tym samym adresem**.
 | Krok | Polecenie | Co sprawdzić |
 |------|-----------|--------------|
 | 1 | `l` | Czy lista zgadza się z Alt+Tab? Czy widać okna z drugiego pulpitu (kolumna `pulpit` = `INNY`) i drugiego monitora? Czy czegoś brakuje albo jest coś zbędnego? |
-| 2 | `m` | Miniatury wszystkich okien obiema metodami. Obejrzyj `wyniki\miniatury\` – które są poprawne, które czarne? Czy podczas WGC pojawiła się żółta ramka wokół okien? |
+| 2 | `m` | Miniatury wszystkich okien obiema metodami. Obejrzyj `wyniki\miniatury\` – które są poprawne, które czarne? Na Windows 10 podczas WGC wokół okien na chwilę pojawia się żółta ramka – to oczekiwane; oceń, czy przeszkadza. |
 | 3 | gest | Przytrzymaj Ctrl+Shift i rusz myszą – w konsoli powinno pojawić się `[GEST #n]`. Potem popracuj normalnie kilka minut (pisanie, zaznaczanie z Ctrl+Shift+strzałki, przeciąganie z Ctrl+Shift) i sprawdź, czy nie ma fałszywych wywołań. |
 | 4 | `p <nr>` | Przełączenie do zwykłego okna, do **zminimalizowanego** i do okna z **innego pulpitu**. Czy pulpit się przełączył? |
 | 5 | `pp <nr>` | Jak wyżej, ale w ciągu 3 s kliknij inne okno – to symuluje warunki docelowej aplikacji. Która metoda zadziałała? |

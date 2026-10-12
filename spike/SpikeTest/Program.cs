@@ -31,6 +31,8 @@ internal static class Program
         Log.Init(Path.Combine(Environment.CurrentDirectory, "wyniki"));
 
         Log.Line("Test techniczny – modul_mapa_aktywnych_okien");
+        Log.Line("To jest test konsolowy: okno Canvas NIE pojawia się – powstanie w prototypie właściwym.");
+        Log.Line("Gest jest tu tylko wykrywany i zapisywany jako [GEST #n]. Polecenia wpisuj poniżej (np. l + Enter).");
         Log.Line($"System: {Environment.OSVersion.VersionString}");
         Log.Line($"Pulpity wirtualne (IVirtualDesktopManager): {(VirtualDesktops.Available ? "dostępne" : "NIEDOSTĘPNE")}");
         Log.Line(Thumbnails.WgcStatus());
