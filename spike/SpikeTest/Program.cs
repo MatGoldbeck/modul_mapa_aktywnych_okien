@@ -26,16 +26,18 @@ internal static class Program
 
     private static async Task Main()
     {
+        Grid.Init(); // jako pierwsze – ustawia świadomość DPI procesu
         Console.OutputEncoding = Encoding.UTF8;
         Console.InputEncoding = Encoding.UTF8;
         Log.Init(Path.Combine(Environment.CurrentDirectory, "wyniki"));
 
         Log.Line("Test techniczny – modul_mapa_aktywnych_okien");
-        Log.Line("To jest test konsolowy: okno Canvas NIE pojawia się – powstanie w prototypie właściwym.");
+        Log.Line("To jest test konsolowy: okno siatki (Grid) NIE pojawia się – powstanie w prototypie właściwym.");
         Log.Line("Gest jest tu tylko wykrywany i zapisywany jako [GEST #n]. Polecenia wpisuj poniżej (np. l + Enter).");
         Log.Line($"System: {Environment.OSVersion.VersionString}");
         Log.Line($"Pulpity wirtualne (IVirtualDesktopManager): {(VirtualDesktops.Available ? "dostępne" : "NIEDOSTĘPNE")}");
         Log.Line(Thumbnails.WgcStatus());
+        Log.Line($"Monitor główny: {Grid.Width}×{Grid.Height} → siatka {Grid.Size}×{Grid.Size} ({Grid.Cells} pól)");
         Log.Line($"Wyniki: {Log.OutputDir}");
         Log.Line();
 
@@ -91,7 +93,7 @@ internal static class Program
               k          lista kart z rozszerzenia
               k <nr>     aktywuj kartę
               z          włącz/wyłącz wypisywanie zdarzeń okien i kart
-              q          koniec
+              q          koniec (wyłącza program; można też Ctrl+C albo zamknąć okno konsoli)
             W tle cały czas działa wykrywanie gestu Ctrl+Shift + ruch myszy ≥ 50 px.
             """);
     }
@@ -115,6 +117,13 @@ internal static class Program
                      $"{monitors.IndexOf(w.Monitor) + 1,3}  {Trim(w.Title, 80)}");
             if (WindowEnumerator.OtherBrowsers.Contains(w.ProcessName)) WarnOtherBrowserOnce(w.ProcessName);
         }
+
+        // Nody okien (bez przeglądarek – ich nodami są karty) + unikalne adresy kart.
+        int nodes = list.Count(w => !WindowEnumerator.SupportedBrowsers.Contains(w.ProcessName))
+                    + Extension.Tabs.Select(t => t.Url).Distinct().Count();
+        Log.Line($"Siatka {Grid.Size}×{Grid.Size}: nodów {nodes} / pól {Grid.Cells}" +
+                 (Extension.Tabs.Count == 0 ? " (bez kart – rozszerzenie niepołączone)" : ""));
+        if (Grid.OverflowMessage(nodes) is { } overflow) Log.Line($"[KOMUNIKAT] {overflow}");
 
         var duplicates = list.GroupBy(w => w.Key).Where(g => g.Count() > 1).ToList();
         Log.Line($"Razem: {list.Count} okien, monitorów: {monitors.Count}, " +

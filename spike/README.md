@@ -23,10 +23,24 @@ cd spike\SpikeTest
 dotnet run -c Release
 ```
 
-Program to interaktywna konsola – **okno Canvas jeszcze się nie pojawia** (powstanie
-w prototypie właściwym). Gest jest tylko wykrywany i zapisywany jako `[GEST #n]`;
+Program to interaktywna konsola – **okno siatki (Grid) jeszcze się nie pojawia** (powstanie
+w prototypie właściwym). Po starcie program wypisuje rozdzielczość monitora głównego
+i wynikający z niej rozmiar siatki; polecenie `l` pokazuje liczbę nodów względem liczby
+pól i komunikat o przepełnieniu. Gest jest tylko wykrywany i zapisywany jako `[GEST #n]`;
 polecenia z tabeli niżej wpisuje się w tej konsoli i zatwierdza Enterem. Wszystko, co wypisuje, trafia też do
 `spike\SpikeTest\wyniki\raport.txt`; miniatury do `wyniki\miniatury\` i `wyniki\karty\`.
+
+## Wyłączanie programu
+
+Program działa, dopóki go nie zamkniesz – także gdy nic nie wpisujesz (w tle wykrywa
+gest i zmiany okien). Wyłączenie, dowolnym sposobem:
+
+- wpisz `q` i naciśnij Enter (zalecane – zapisuje koniec sesji w raporcie),
+- naciśnij **Ctrl+C** w oknie konsoli,
+- zamknij okno konsoli / terminala.
+
+Po wyłączeniu nic nie zostaje uruchomione w tle (hooki myszy i zdarzeń okien znikają
+razem z procesem).
 
 ## Rozszerzenie przeglądarki
 

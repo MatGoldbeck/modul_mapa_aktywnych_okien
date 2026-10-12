@@ -1,10 +1,10 @@
 # Specyfikacja — modul_mapa_aktywnych_okien (prototyp 1)
 
-Status: zatwierdzona (2026-10-10).
+Status: zatwierdzona (2026-10-10), zmiana Canvas → Grid (2026-10-12).
 
 ## 1. Cel
 
-Globalna mapa (Canvas) wszystkich aktywnych okien jako nodów z miniaturami. Kliknięcie
+Globalna mapa w postaci siatki (Grid) wszystkich aktywnych okien jako nodów z miniaturami. Kliknięcie
 noda przełącza do jego okna. Moduł służy **wyłącznie do przełączania się między otwartymi
 oknami** — nie przechowuje ścieżek plików ani referencji do ponownego otwierania.
 
@@ -19,12 +19,14 @@ oknami** — nie przechowuje ścieżek plików ani referencji do ponownego otwie
   - przełączanie okien,
   - zapis stanu,
   - serwer WebSocket na `127.0.0.1` (port inny niż DocMonitor `5891`).
-- **Frontend:** Electron — okno z Canvasem + ikona w zasobniku.
+- **Frontend:** Electron — okno z siatką (Grid) + ikona w zasobniku.
 - **Rozszerzenie przeglądarki:** Manifest V3, Edge + Chrome, wspólne dla obu modułów (pkt 6).
 - **Repozytorium:** `MatGoldbeck/modul_mapa_aktywnych_okien` — `backend/`, `frontend/`,
   `extension/`, `docs/`.
 - **Uruchamianie:** ręczne (bez autostartu); po starcie aplikacja działa w tle z ikoną
   w zasobniku.
+- **Wyłączanie:** menu ikony w zasobniku (prawy przycisk) → **„Zakończ”**. Zamyka
+  frontend i backend. Esc i klik w nod tylko chowają okno – program działa dalej w tle.
 
 ## 3. Co jest nodem
 
@@ -48,25 +50,45 @@ oknami** — nie przechowuje ścieżek plików ani referencji do ponownego otwie
 ## 4. Cykl życia nodów
 
 - Mapa aktualizuje się automatycznie przy każdym otwarciu i zamknięciu okna/karty.
-- **Nowe okno/karta:** nod pojawia się przy krawędzi właściwej dla typu (pkt 5),
+- **Nowe okno/karta:** nod trafia do wolnego pola przy krawędzi właściwej dla typu (pkt 5),
   miniatura jest robiona od razu.
 - **Zamknięcie:** nod znika z mapy.
-- **Ponowne pojawienie się znanego klucza:** nod wraca w zapamiętaną pozycję zamiast
-  na krawędź.
+- **Ponowne pojawienie się znanego klucza:** nod wraca do zapamiętanego pola (jeśli jest
+  wolne i mieści się w bieżącej siatce) zamiast na krawędź.
 - Na mapie są wyłącznie nody aktywnych okien.
 
-## 5. Canvas
+## 5. Grid (siatka)
 
-- Stały rozmiar, ustalany przy otwarciu okna i dopasowany do monitora, na którym okno
-  się otwiera.
+- Mapa to siatka pól (Grid); każdy nod zajmuje dokładnie jedno pole.
+- **Liczba pól zależy od rozdzielczości ekranu**, odczytywanej raz – przy uruchomieniu
+  aplikacji (monitor główny, rozdzielczość fizyczna w pikselach, niezależnie od skalowania):
+
+  | Rozdzielczość do (włącznie) | Siatka | Pól |
+  |-----------------------------|--------|-----|
+  | 1920×1080                   | 5×5    | 25  |
+  | 2560×1440                   | 6×6    | 36  |
+  | 3840×2160                   | 8×8    | 64  |
+  | powyżej 3840×2160           | 8×8    | 64  |
+
+  Rozdzielczość mieści się w progu, gdy szerokość i wysokość są nie większe niż próg
+  (np. 1920×1200 → 6×6).
+- Okno siatki ma stały rozmiar dopasowany do monitora głównego.
 - Wyłącznie nody — bez linii, relacji i notatek.
 - Nod: miniatura + ikona/favikona + tytuł.
-- **Nowe nody przy krawędzi według typu:**
-  - górna: karty Edge/Chrome,
-  - lewa: Office (Word, Excel, PowerPoint, Outlook),
-  - dolna: Eksplorator,
-  - prawa: pozostałe aplikacje.
-- Nody można dowolnie przesuwać w obszarze Canvasu; pozycje są zapamiętywane.
+- **Nowe nody trafiają do wolnych pól przy krawędzi według typu:**
+  - górny wiersz: karty Edge/Chrome,
+  - lewa kolumna: Office (Word, Excel, PowerPoint, Outlook),
+  - dolny wiersz: Eksplorator,
+  - prawa kolumna: pozostałe aplikacje.
+
+  Gdy pola przy właściwej krawędzi są zajęte, nod trafia do najbliższego wolnego pola.
+- **Przesuwanie:** nod przeciąga się do innego pola siatki. Upuszczenie na zajęte pole
+  zamienia nody miejscami. Pozycja (wiersz, kolumna) jest zapamiętywana.
+- **Przepełnienie:** gdy nodów jest więcej niż pól, wyświetlany jest komunikat:
+  „Liczba nodów (N) przekracza liczbę pól siatki (M). Nie wyświetlono X nodów.”
+  Nody, które się nie zmieściły, pojawiają się automatycznie, gdy zwolni się pole.
+- Zapamiętane pole spoza bieżącej siatki (np. po zmianie rozdzielczości) jest ignorowane –
+  nod trafia na krawędź.
 - Przycisk **„Odśwież miniatury”** robi nowe miniatury wszystkich aktualnych okien.
 
 ## 6. Rozszerzenie przeglądarki (Edge, Chrome)
@@ -107,8 +129,8 @@ oknami** — nie przechowuje ścieżek plików ani referencji do ponownego otwie
 
 ## 9. Zapis i konfiguracja
 
-- `%APPDATA%\MapaAktywnychOkien\map.json` — klucze nodów, pozycje, ostatnia pozycja okna
-  aplikacji.
+- `%APPDATA%\MapaAktywnychOkien\map.json` — klucze nodów, pola siatki (wiersz, kolumna),
+  ostatnia pozycja okna aplikacji.
 - `%APPDATA%\MapaAktywnychOkien\thumbs\` — miniatury.
 - Lista wykluczeń: edytowalna lista nazw procesów w pliku konfiguracyjnym (bez okna
   ustawień). Na start: 1Password, KeePass, Bitwarden.
@@ -117,7 +139,7 @@ oknami** — nie przechowuje ścieżek plików ani referencji do ponownego otwie
 
 - otwieranie zamkniętych zasobów, referencje do plików/linków,
 - wykrywanie nieaktywnych linków,
-- relacje, linie, notatki,
+- relacje, linie, notatki, swobodne (poza siatką) rozmieszczanie nodów,
 - przeglądarki inne niż Edge/Chrome,
 - okno ustawień, autostart, instalator,
 - integracja z DocMonitorem poza wspólnym rozszerzeniem.
