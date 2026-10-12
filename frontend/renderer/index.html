@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <!-- Miniatury z dysku (file:), favikony kart z sieci (https:), backend tylko lokalnie. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' file: https: http: data:; connect-src ws://127.0.0.1:*; style-src 'self'; script-src 'self'">
+  <title>Mapa aktywnych okien</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="toolbar">
+    <div class="toolbar__title">Mapa aktywnych okien</div>
+    <div class="toolbar__info" id="gridInfo">—</div>
+    <div class="toolbar__chips">
+      <span class="chip" id="chipEdge" title="Rozszerzenie Edge">Edge</span>
+      <span class="chip" id="chipChrome" title="Rozszerzenie Chrome">Chrome</span>
+    </div>
+    <div class="toolbar__spacer"></div>
+    <button class="button" id="refreshBtn" type="button">⟳ Odśwież miniatury</button>
+    <div class="toolbar__hint">Przeciągnij nod na inne pole · Esc – zamknij</div>
+  </header>
+
+  <div class="banner" id="overflowBanner" hidden></div>
+
+  <main class="grid" id="grid" aria-label="Siatka nodów"></main>
+
+  <div class="overlay" id="offline">
+    <div class="overlay__box">
+      <div class="spinner"></div>
+      <div>Łączenie z backendem…</div>
+      <div class="overlay__hint">Jeśli to trwa dłużej, sprawdź %APPDATA%\MapaAktywnychOkien\backend.log</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

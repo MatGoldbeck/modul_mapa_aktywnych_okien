@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- WinExe: brak okna konsoli – backend uruchamia w tle frontend (Electron). -->
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- System.Drawing (PrintWindow → Bitmap) -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Pozwala skompilować projekt także poza Windows; na Windows bez znaczenia. -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <AssemblyName>MapaOkien.Backend</AssemblyName>
+    <RootNamespace>MapaOkien.Backend</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Kodowanie miniatur do WebP (System.Drawing nie obsługuje WebP). -->
+    <PackageReference Include="SkiaSharp" Version="2.88.9" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="2.88.9" />
+  </ItemGroup>
+
+</Project>

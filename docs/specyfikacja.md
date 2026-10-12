@@ -1,6 +1,6 @@
 # Specyfikacja — modul_mapa_aktywnych_okien (prototyp 1)
 
-Status: zatwierdzona (2026-10-10), zmiana Canvas → Grid (2026-10-12).
+Status: zatwierdzona (2026-10-10), zmiana Canvas → Grid (2026-10-12), prototyp zbudowany (2026-10-12).
 
 ## 1. Cel
 
@@ -23,8 +23,8 @@ oknami** — nie przechowuje ścieżek plików ani referencji do ponownego otwie
 - **Rozszerzenie przeglądarki:** Manifest V3, Edge + Chrome, wspólne dla obu modułów (pkt 6).
 - **Repozytorium:** `MatGoldbeck/modul_mapa_aktywnych_okien` — `backend/`, `frontend/`,
   `extension/`, `docs/`.
-- **Uruchamianie:** ręczne (bez autostartu); po starcie aplikacja działa w tle z ikoną
-  w zasobniku.
+- **Uruchamianie:** ręczne (bez autostartu) przez `start.cmd`; frontend uruchamia backend
+  i działa w tle z ikoną w zasobniku. Backend kończy się razem z frontendem.
 - **Wyłączanie:** menu ikony w zasobniku (prawy przycisk) → **„Zakończ”**. Zamyka
   frontend i backend. Esc i klik w nod tylko chowają okno – program działa dalej w tle.
 
@@ -32,7 +32,8 @@ oknami** — nie przechowuje ścieżek plików ani referencji do ponownego otwie
 
 - Każde aktywne okno widoczne w Alt+Tab (widoczne okno najwyższego poziomu z paskiem
   zadań), także okna bez rozpoznanego zasobu (Kalkulator, Teams itp.).
-- **Edge i Chrome:** każda karta to osobny nod; dane kart dostarcza rozszerzenie.
+- **Edge i Chrome:** każda karta to osobny nod; dane kart dostarcza rozszerzenie. Gdy
+  rozszerzenie danej przeglądarki nie jest połączone, jej okna są zwykłymi nodami okien.
 - **Pomijane:**
   - okno samego modułu i elementy systemowe,
   - procesy z listy wykluczeń (pkt 9),

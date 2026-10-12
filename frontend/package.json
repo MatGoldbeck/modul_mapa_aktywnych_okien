@@ -1,0 +1,16 @@
+{
+  "name": "mapa-aktywnych-okien-frontend",
+  "version": "0.1.0",
+  "description": "Okno siatki (Grid) z nodami aktywnych okien + ikona w zasobniku (prototyp)",
+  "main": "main.js",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "set \"ELECTRON_RUN_AS_NODE=\" && electron ."
+  },
+  "devDependencies": {
+    "electron": "31.7.7"
+  }
+}

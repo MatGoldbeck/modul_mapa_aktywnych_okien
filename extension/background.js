@@ -1,7 +1,7 @@
 // Most między przeglądarką (Edge/Chrome) a lokalnym backendem modułu.
 // Tylko 127.0.0.1. Karty incognito/InPrivate nigdy nie są wysyłane.
 
-const ENDPOINT = "ws://127.0.0.1:5892/"; // modul_mapa_aktywnych_okien (DocMonitor: 5891 – w prototypie)
+const ENDPOINT = "ws://127.0.0.1:5892/"; // modul_mapa_aktywnych_okien (DocMonitor 5891 – w kolejnej iteracji)
 const VERSION = chrome.runtime.getManifest().version;
 const BROWSER = navigator.userAgent.includes("Edg/") ? "edge" : "chrome";
 
@@ -54,6 +54,9 @@ async function handle(msg) {
     case "getTabs":
       sendAllTabs();
       break;
+    case "captureActiveTabs":
+      captureActiveTabs();
+      break;
     case "activateTab":
       try {
         await chrome.tabs.update(msg.tabId, { active: true });
@@ -78,6 +81,20 @@ function scheduleCapture(tab) {
       send({ type: "error", message: `captureVisibleTab (${tab.url}): ${err.message}` });
     }
   }, 400);
+}
+
+// „Odśwież miniatury”: aktywna karta każdego okna (Chrome pozwala na ok. 2 przechwycenia/s).
+async function captureActiveTabs() {
+  const tabs = await chrome.tabs.query({ active: true, windowType: "normal" });
+  for (const t of tabs.filter((t) => !t.incognito)) {
+    try {
+      const dataUrl = await chrome.tabs.captureVisibleTab(t.windowId, { format: "jpeg", quality: 60 });
+      send({ type: "thumb", tabId: t.id, url: t.url || "", dataUrl });
+    } catch (err) {
+      send({ type: "error", message: `captureVisibleTab (${t.url}): ${err.message}` });
+    }
+    await new Promise((r) => setTimeout(r, 600));
+  }
 }
 
 chrome.tabs.onCreated.addListener((t) => {
